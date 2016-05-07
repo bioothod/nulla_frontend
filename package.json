@@ -1,0 +1,21 @@
+{
+  "name": "nulla_frontend",
+  "version": "0.0.1",
+  "description": "Nulla Elliptics streaming frontend",
+  "main": "index.js",
+  "dependencies": {
+    "react": "~15.0.2",
+    "react-dropzone": "~3.4.0"
+  },
+  "devDependencies": {
+    "webpack": "~1.13.0",
+    "babel": "~6.5.2",
+    "babel-core": "~6.8.0",
+    "babel-loader": "~6.2.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Evgeniy Polyakov <zbr@ioremap.net>",
+  "license": "MIT"
+}
