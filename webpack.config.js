@@ -1,8 +1,10 @@
+var webpack = require('webpack');
 var path = require('path');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
-  entry: path.resolve(__dirname, 'scripts/example.js'),
+  devtool: "source-map",
+  entry: path.resolve(__dirname, 'scripts/upload.js'),
   output: {
     path: path.resolve(__dirname, 'build'),
     filename: 'final.js'
@@ -24,6 +26,11 @@ module.exports = {
 
   // This plugin moves all the CSS into a separate stylesheet
   plugins: [
-    new ExtractTextPlugin('app.css')
+    new ExtractTextPlugin('app.css'),
+    new webpack.DefinePlugin({
+      'process.env': {
+        'NODE_ENV': JSON.stringify('production')
+      }
+    })
   ]
 };
