@@ -1,6 +1,11 @@
+//var React = require('react');
+//var ReactDOM = require('react-dom');
 var Dropzone = require('react-dropzone');
+
 var UploadBox = React.createClass({
   onDrop: function (files) {
+    this.props.uploadInit();
+
     files.forEach((file)=> {
       console.log('Uploading file: %s', file.name);
 
@@ -44,10 +49,14 @@ var UploadBox = React.createClass({
 
 var UploadCompletion = React.createClass({
   render: function() {
+    var bucket = "error";
+    if (this.props.status === 200) {
+      var js = JSON.parse(this.props.data);
+      bucket = js["bucket"];
+    }
       return (
         <div className="uploadCompletion">
-	  <p>File: {this.props.file}, Status: {this.props.status}</p>
-          <pre>{this.props.data}</pre>
+	  <p>File: {this.props.file}, Bucket: {bucket}, Status: {this.props.status}</p>
         </div>
       );
   }
@@ -74,6 +83,10 @@ var UploadCtl = React.createClass({
     return {completions: []};
   },
 
+  upload_init: function() {
+    this.setState({completions: []});
+  },
+
   upload_completed: function(cmp) {
     var cmps = this.state.completions;
     var new_cmps = cmps.concat([cmp]);
@@ -84,7 +97,7 @@ var UploadCtl = React.createClass({
     return (
       <div className="uploadCtl">
         <UploadStatus completions={this.state.completions} />
-        <UploadBox url={this.props.url} uploadCompleted={this.upload_completed} />
+        <UploadBox url={this.props.url} uploadCompleted={this.upload_completed} uploadInit={this.upload_init} />
       </div>
     );
   }
