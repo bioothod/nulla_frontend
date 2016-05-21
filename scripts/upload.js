@@ -9,7 +9,7 @@ var UploadBox = React.createClass({
       data.append(file.name, file);
 
       $.ajax({
-        url: this.props.url + file.name,
+        url: this.props.url + "/" + file.name,
         type: 'POST',
         data: data,
         context: this,
@@ -51,7 +51,7 @@ var UploadCompletion = React.createClass({
     if (this.props.status === 200) {
       var js = JSON.parse(this.props.data);
       bucket = js["bucket"];
-      url = this.props.get_url + bucket + "/" + this.props.file;
+      url = this.props.get_url + "/" + bucket + "/" + this.props.file;
     }
       return (
         <div className="uploadCompletion">
