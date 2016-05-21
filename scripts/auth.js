@@ -1,6 +1,63 @@
-var AuthForm = React.createClass({
+var SignupForm = React.createClass({
   getInitialState: function() {
-    return {username: '', password: ''};
+    return {
+      username: '',
+      password: '',
+      realname: '',
+      email: '',
+    };
+  },
+
+  handleUsernameChange: function(e) {
+    this.setState({username: e.target.value});
+  },
+  handlePasswordChange: function(e) {
+    this.setState({password: e.target.value});
+  },
+  handleRealnameChange: function(e) {
+    this.setState({realname: e.target.value});
+  },
+  handleEmailChange: function(e) {
+    this.setState({email: e.target.value});
+  },
+
+  handleSubmit: function(e) {
+    e.preventDefault();
+    var username = this.state.username.trim();
+    var password = this.state.password.trim();
+    var realname = this.state.realname.trim();
+    var email = this.state.email.trim();
+    if (!username || !password) {
+      return;
+    }
+
+    this.props.onAuthSubmit({
+      username: username,
+      password: password,
+      realname: realname,
+      email: email,
+    });
+    this.setState(this.getInitialState());
+  },
+  render: function() {
+    return (
+      <form className="authForm" onSubmit={this.handleSubmit}>
+        <input type="text" placeholder="Your name" value={this.state.username} onChange={this.handleUsernameChange}/><br/>
+        <input type="password" placeholder="Your password..." value={this.state.password} onChange={this.handlePasswordChange}/><br/>
+        <input type="text" placeholder="Your real name" value={this.state.realname} onChange={this.handleRealnameChange}/><br/>
+        <input type="text" placeholder="Your email" value={this.state.email} onChange={this.handleEmailChange}/><br/>
+        <input type="submit" value="Post" />
+      </form>
+    );
+  }
+});
+
+var LoginForm = React.createClass({
+  getInitialState: function() {
+    return {
+      username: '',
+      password: '',
+    };
   },
 
   handleUsernameChange: function(e) {
@@ -18,40 +75,19 @@ var AuthForm = React.createClass({
       return;
     }
 
-    this.props.onAuthSubmit({username: username, password: password});
-    this.setState({username: '', password: ''});
+    this.props.onAuthSubmit({
+      username: username,
+      password: password,
+    });
+    this.setState(this.getInitialState());
   },
   render: function() {
     return (
       <form className="authForm" onSubmit={this.handleSubmit}>
-        <input type="text" placeholder="Your name" value={this.state.username} onChange={this.handleUsernameChange}/>
-        <input type="password" placeholder="Your password..." value={this.state.password} onChange={this.handlePasswordChange}/>
+        <input type="text" placeholder="Your name" value={this.state.username} onChange={this.handleUsernameChange} /><br/>
+        <input type="password" placeholder="Your password..." value={this.state.password} onChange={this.handlePasswordChange} /><br/>
         <input type="submit" value="Post" />
       </form>
-    );
-  }
-});
-
-var AuthUploadBox = React.createClass({
-  handleAuthSubmit: function(auth) {
-    $.ajax({
-      url: this.props.url,
-      dataType: 'json',
-      type: 'POST',
-      data: auth,
-      success: function(data) {
-        this.props.onSuccess(data);
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-        this.props.onError(status, err.toString());
-      }.bind(this)
-    });
-  },
-
-  render: function() {
-    return (
-      <AuthForm onAuthSubmit={this.handleAuthSubmit} onSuccess={this.props.onSuccess} onError={this.props.onError} />
     );
   }
 });
@@ -61,7 +97,7 @@ var LoginBox = React.createClass({
     return (
       <div className="loginBox">
         <h1>Login</h1>
-        <AuthUploadBox url={this.props.url} onSuccess={this.props.onSuccess} onError={this.props.onError} />
+        <LoginForm url={this.props.url} onAuthSubmit={this.props.onAuthSubmit} />
       </div>
     );
   }
@@ -72,7 +108,7 @@ var SignupBox = React.createClass({
     return (
       <div className="signupBox">
         <h1>Sign up</h1>
-        <AuthUploadBox url={this.props.url} onSuccess={this.props.onSuccess} onError={this.props.onError} />
+        <SignupForm url={this.props.url} onAuthSubmit={this.props.onAuthSubmit} />
       </div>
     );
   }
@@ -84,6 +120,26 @@ var AuthBox = React.createClass({
       loginSelected: false,
       start: true,
     };
+  },
+
+  handleAuthSubmit: function(auth) {
+    var url = this.props.user_signup;
+    if (this.state.loginSelected)
+      url = this.props.user_login;
+
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      type: 'POST',
+      data: JSON.stringify(auth),
+      success: function(data) {
+        this.props.onSuccess(data);
+      }.bind(this),
+      error: function(xhr, status, err) {
+        this.setState(this.getInitialState());
+        this.props.onError(status, err.toString());
+      }.bind(this)
+    });
   },
 
   loadLoginPage: function() {
@@ -102,9 +158,9 @@ var AuthBox = React.createClass({
         </div>
     } else {
       if (this.state.loginSelected) {
-        component = <LoginBox url={this.props.login} onSuccess={this.props.onSuccess} onError={this.props.onError} />
+        component = <LoginBox url={this.props.user_login} onAuthSubmit={this.handleAuthSubmit} />
       } else {
-        component = <SignupBox url={this.props.signup} onSuccess={this.props.onSuccess} onError={this.props.onError} />
+        component = <SignupBox url={this.props.user_signup} onAuthSubmit={this.handleAuthSubmit} />
       }
     }
 
