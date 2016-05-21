@@ -1,7 +1,3 @@
-//var React = require('react');
-//var ReactDOM = require('react-dom');
-var Dropzone = require('react-dropzone');
-
 var UploadBox = React.createClass({
   onDrop: function (files) {
     this.props.uploadInit();
@@ -16,21 +12,22 @@ var UploadBox = React.createClass({
         url: this.props.url + file.name,
         type: 'POST',
         data: data,
-	context: this,
+        context: this,
         cache: false,
         dataType: 'json',
         processData: false, // Don't process the files
         contentType: false, // Set content type to false as jQuery will tell the server its a query string request
         success: function(data, textStatus, jqXHR) {
-	    this.props.uploadCompleted({file: file.name, status: jqXHR.status, data: jqXHR.responseText});
+          this.props.uploadCompleted({file: file.name, status: jqXHR.status, data: jqXHR.responseText});
         },
         error: function(jqXHR, textStatus, err) {
-	  var status = jqXHR.status;
-	  if (status === 0) {
-	    status = -22;
-	  }
-	  console.log('Could not upload file %s, code: %d: %s/%s', file.name, jqXHR.statusCode(), textStatus, err.toString());
-	  this.props.uploadCompleted({file: file.name, status: status, data: jqXHR.responseText});
+          var status = jqXHR.status;
+          if (status === 0) {
+            status = -22;
+          }
+
+          console.log('Could not upload file %s, code: %d: %s/%s', file.name, jqXHR.statusCode(), textStatus, err.toString());
+          this.props.uploadCompleted({file: file.name, status: status, data: jqXHR.responseText});
         }
       });
     });
@@ -50,13 +47,15 @@ var UploadBox = React.createClass({
 var UploadCompletion = React.createClass({
   render: function() {
     var bucket = "error";
+    var url = "#";
     if (this.props.status === 200) {
       var js = JSON.parse(this.props.data);
       bucket = js["bucket"];
+      url = this.props.get_url + bucket + "/" + this.props.file;
     }
       return (
         <div className="uploadCompletion">
-	  <p>File: {this.props.file}, Bucket: {bucket}, Status: {this.props.status}</p>
+          <p>File: <a href={url} target="_blank">{this.props.file}</a>, Bucket: {bucket}, Status: {this.props.status}</p>
         </div>
       );
   }
@@ -64,9 +63,10 @@ var UploadCompletion = React.createClass({
 
 var UploadStatus = React.createClass({
   render: function() {
+    var get_url = this.props.get_url;
     var upload_completion = this.props.completions.map(function(cmp) {
       return (
-        <UploadCompletion key={cmp.file} file={cmp.file} status={cmp.status} data={cmp.data} />
+        <UploadCompletion key={cmp.file} file={cmp.file} status={cmp.status} data={cmp.data} get_url={get_url} />
       );
     });
 
@@ -80,7 +80,9 @@ var UploadStatus = React.createClass({
 
 var UploadCtl = React.createClass({
   getInitialState: function() {
-    return {completions: []};
+    return {
+      completions: [],
+    };
   },
 
   upload_init: function() {
@@ -94,17 +96,13 @@ var UploadCtl = React.createClass({
   },
 
   render: function() {
-    return (
-      <div className="uploadCtl">
-        <UploadStatus completions={this.state.completions} />
-        <UploadBox url={this.props.url} uploadCompleted={this.upload_completed} uploadInit={this.upload_init} />
-      </div>
-    );
+      return (
+        <div className="uploadCtl">
+          <UploadStatus completions={this.state.completions} get_url={this.props.get_url} />
+          <UploadBox url={this.props.upload_url} uploadCompleted={this.upload_completed} uploadInit={this.upload_init} />
+        </div>
+      );
   }
 });
 
-
-ReactDOM.render(
-  <UploadCtl url="http://localhost:8080/upload/" />,
-  document.getElementById('upload')
-);
+window.UploadCtl = UploadCtl;
