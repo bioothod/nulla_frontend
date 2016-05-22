@@ -2,7 +2,7 @@ var HelloBox = React.createClass({
   render: function() {
     return (
       <div className="usernameClass">
-        Hello, {this.props.username}. <span><a href="#" onClick={this.props.onLogout}>Logout</a></span>
+        Hello, {this.props.mbox.realname}. <span><a href="#" onClick={this.props.onLogout}>Logout</a></span>
       </div>
     );
   }
@@ -23,12 +23,12 @@ var MainCtl = React.createClass({
   getInitialState: function() {
     return {
       logged: false,
-      username: '',
+      mbox: {},
     };
   },
 
   onSuccess: function(data) {
-    this.setState({logged: true, username: data.username});
+    this.setState({logged: true, mbox: data});
     window.logged = true;
   },
   onError: function(data) {
@@ -36,22 +36,27 @@ var MainCtl = React.createClass({
   },
 
   onLogout: function() {
-    this.setState({logged: false, username: ''});
+    this.setState(this.getInitialState());
     window.logged = false;
   },
 
   render: function() {
+    var tags = {};
+    tags["tags"] = [];
+
     var component;
     if (this.state.logged) {
       component =
         <div>
-          <HelloBox username={this.state.username} onLogout={this.onLogout} />
-          <UploadCtl upload_url={this.props.upload} get_url={this.props.get} />
+          <HelloBox mbox={this.state.mbox} onLogout={this.onLogout} />
+          <ListCtl list_url={this.props.list} tags={tags} />
+          <UploadCtl upload_url={this.props.upload} get_url={this.props.get} index_url={this.props.index} />
         </div>
     } else {
       component =
         <div>
-          <AuthBox login={this.props.login} signup={this.props.signup} onSuccess={this.onSuccess} onError={this.onError} />
+          <AuthBox user_login={this.props.user_login} user_signup={this.props.user_signup}
+            onSuccess={this.onSuccess} onError={this.onError} />
           <Empty />
         </div>
     }
@@ -64,10 +69,20 @@ var MainCtl = React.createClass({
   }
 });
 
+var host = "http://odin.reverbrain.com:8080";
+var user_login = host + "/user_login";
+var user_signup = host + "/user_signup";
+var user_update = host + "/user_update";
+var upload = host + "/upload";
+var get = host + "/get";
+var index = host + "/index";
+var list = host + "/list";
+
 ReactDOM.render(
   <MainCtl
-    login="http://odin.reverbrain.com:8080/login" signup="http://odin.reverbrain.com:8080/signup"
-    upload="http://odin.reverbrain.com:8080/upload/" get="http://odin.reverbrain.com:8080/get/"
+    user_login={user_login} user_signup={user_signup} user_update={user_update}
+    index={index} list={list}
+    upload={upload} get={get}
   />,
   document.getElementById('main')
 );
