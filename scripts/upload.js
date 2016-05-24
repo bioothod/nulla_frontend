@@ -1,4 +1,11 @@
 var UploadBox = React.createClass({
+  onSuccess: function(cmp) {
+    this.props.onSuccess(cmp);
+  },
+  onError: function(cmp) {
+    this.props.onError(cmp);
+  },
+
   onDrop: function (files) {
     this.props.uploadInit();
 
@@ -12,23 +19,21 @@ var UploadBox = React.createClass({
         url: this.props.url + "/" + file.name,
         type: 'POST',
         data: data,
-        context: this,
         cache: false,
         dataType: 'json',
         processData: false, // Don't process the files
         contentType: false, // Set content type to false as jQuery will tell the server its a query string request
         success: function(data, textStatus, jqXHR) {
-          this.props.uploadCompleted({file: file.name, status: jqXHR.status, data: jqXHR.responseText});
-        },
+          this.onSuccess({file: file.name, status: jqXHR.status, data: jqXHR.responseText});
+        }.bind(this),
         error: function(jqXHR, textStatus, err) {
           var status = jqXHR.status;
           if (status === 0) {
             status = -22;
           }
 
-          console.log('Could not upload file %s, code: %d: %s/%s', file.name, jqXHR.statusCode(), textStatus, err.toString());
-          this.props.uploadCompleted({file: file.name, status: status, data: jqXHR.responseText});
-        }
+          this.onError({file: file.name, status: status, data: jqXHR.responseText});
+        }.bind(this),
       });
     });
   },
@@ -46,33 +51,46 @@ var UploadBox = React.createClass({
 
 var UploadCompletion = React.createClass({
   render: function() {
-    var bucket = "error";
-    var url = "#";
-    if (this.props.status === 200) {
-      var js = JSON.parse(this.props.data);
-      bucket = js["bucket"];
-      url = this.props.get_url + "/" + bucket + "/" + this.props.file;
-    }
-      return (
-        <div className="uploadCompletion">
-          <p>File: <a href={url} target="_blank">{this.props.file}</a>, Bucket: {bucket}, Status: {this.props.status}</p>
-        </div>
-      );
+    console.log("UploadCompletion: %o", this.props.reply);
+    var obj = JSON.parse(this.props.reply.data);
+    return (
+      <KeyInfo get_url={this.props.get_url} bucket={obj.bucket} filename={obj.key} />
+    );
   }
 });
 
+var UploadError = React.createClass({
+  render: function() {
+    return (
+      <div className="uploadCompletion">
+        <p>File: {this.props.reply.file}, Status: {this.props.reply.status}, Reply: {this.props.reply.data}</p>
+      </div>
+    );
+  }
+});
+
+
 var UploadStatus = React.createClass({
   render: function() {
-    var get_url = this.props.get_url;
-    var upload_completion = this.props.completions.map(function(cmp) {
+    var upload_completions = this.props.completions.map(function(cmp) {
+      console.log("completed: %o", cmp);
       return (
-        <UploadCompletion key={cmp.file} file={cmp.file} status={cmp.status} data={cmp.data} get_url={get_url} />
+        <UploadCompletion reply={cmp} get_url={this.props.get_url} key={cmp.file} />
       );
-    });
+    }, this);
+
+    var upload_errors = this.props.errors.map(function(cmp) {
+      return (
+        <UploadError filename={cmp.file} reply={cmp} key={cmp.file} />
+      );
+    }, this);
 
     return (
       <div className="uploadCompletionList">
-  	{upload_completion}
+        { upload_completions.length >= 1 ? "You have uploaded following files in the last uploading session" : "You have not uploaded any files yet" }
+        {upload_completions}
+        { upload_errors.length >= 1 ? "Following files have not been uploaded because of errors" : null }
+        {upload_errors}
       </div>
     );
   }
@@ -82,6 +100,7 @@ var UploadCtl = React.createClass({
   getInitialState: function() {
     return {
       completions: [],
+      errors: [],
     };
   },
 
@@ -89,17 +108,57 @@ var UploadCtl = React.createClass({
     this.setState({completions: []});
   },
 
+  index_update: function(cmp) {
+    var reply = JSON.parse(cmp.data);
+    var idx = {};
+    var fidx = {};
+    fidx.key = reply.key;
+    fidx.bucket = reply.bucket;
+    fidx.tags = [];
+
+    idx.files = [fidx];
+
+    $.ajax({
+      url: this.props.index_url,
+      type: 'POST',
+      data: JSON.stringify(idx),
+      cache: false,
+      dataType: 'json',
+      processData: false, // Don't process the files
+      contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+      success: function(data) {
+        cmp.index = data;
+        var cmps = this.state.completions;
+        var new_cmps = cmps.concat([cmp]);
+        this.setState({completions: new_cmps});
+      }.bind(this),
+      error: function(jqXHR, textStatus, err) {
+        var status = jqXHR.status;
+        if (status === 0) {
+          status = -22;
+        }
+
+        this.upload_error({file: cmp.file, status: status, data: jqXHR.responseText});
+      }.bind(this),
+    });
+  },
+
   upload_completed: function(cmp) {
-    var cmps = this.state.completions;
+    this.index_update(cmp);
+  },
+
+  upload_error: function(cmp) {
+    var cmps = this.state.errors;
     var new_cmps = cmps.concat([cmp]);
-    this.setState({completions: new_cmps});
+    this.setState({errors: new_cmps});
   },
 
   render: function() {
       return (
         <div className="uploadCtl">
-          <UploadStatus completions={this.state.completions} get_url={this.props.get_url} />
-          <UploadBox url={this.props.upload_url} uploadCompleted={this.upload_completed} uploadInit={this.upload_init} />
+          <UploadStatus completions={this.state.completions} errors={this.state.errors} get_url={this.props.get_url} />
+          <UploadBox url={this.props.upload_url}
+            onSuccess={this.upload_completed} onError={this.upload_error} uploadInit={this.upload_init} />
         </div>
       );
   }
