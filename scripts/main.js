@@ -49,7 +49,7 @@ var MainCtl = React.createClass({
       component =
         <div>
           <HelloBox mbox={this.state.mbox} onLogout={this.onLogout} />
-          <ListCtl list_url={this.props.list} tags={tags} />
+          <ListCtl list_url={this.props.list} get_url={this.props.get} tags={tags} />
           <UploadCtl upload_url={this.props.upload} get_url={this.props.get} index_url={this.props.index} />
         </div>
     } else {
