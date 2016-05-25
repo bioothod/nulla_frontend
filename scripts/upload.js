@@ -24,7 +24,7 @@ var UploadBox = React.createClass({
         processData: false, // Don't process the files
         contentType: false, // Set content type to false as jQuery will tell the server its a query string request
         success: function(data, textStatus, jqXHR) {
-          this.onSuccess({file: file.name, status: jqXHR.status, data: jqXHR.responseText});
+          this.onSuccess({file: file.name, status: jqXHR.status, reply: data});
         }.bind(this),
         error: function(jqXHR, textStatus, err) {
           var status = jqXHR.status;
@@ -32,7 +32,7 @@ var UploadBox = React.createClass({
             status = -22;
           }
 
-          this.onError({file: file.name, status: status, data: jqXHR.responseText});
+          this.onError({file: file.name, status: status, text: jqXHR.responseText});
         }.bind(this),
       });
     });
@@ -51,8 +51,7 @@ var UploadBox = React.createClass({
 
 var UploadCompletion = React.createClass({
   render: function() {
-    console.log("UploadCompletion: %o", this.props.reply);
-    var obj = JSON.parse(this.props.reply.data);
+    var obj = this.props.cmp.reply;
     return (
       <KeyInfo get_url={this.props.get_url} bucket={obj.bucket} filename={obj.key} />
     );
@@ -63,7 +62,7 @@ var UploadError = React.createClass({
   render: function() {
     return (
       <div className="uploadCompletion">
-        <p>File: {this.props.reply.file}, Status: {this.props.reply.status}, Reply: {this.props.reply.data}</p>
+        <p>File: {this.props.reply.file}, Status: {this.props.reply.status}, Reply: {this.props.reply.text}</p>
       </div>
     );
   }
@@ -73,9 +72,9 @@ var UploadError = React.createClass({
 var UploadStatus = React.createClass({
   render: function() {
     var upload_completions = this.props.completions.map(function(cmp) {
-      console.log("completed: %o", cmp);
+      console.log("UploadStatus: %o", cmp);
       return (
-        <UploadCompletion reply={cmp} get_url={this.props.get_url} key={cmp.file} />
+        <UploadCompletion cmp={cmp} get_url={this.props.get_url} key={cmp.file} />
       );
     }, this);
 
@@ -109,11 +108,10 @@ var UploadCtl = React.createClass({
   },
 
   index_update: function(cmp) {
-    var reply = JSON.parse(cmp.data);
     var idx = {};
     var fidx = {};
-    fidx.key = reply.key;
-    fidx.bucket = reply.bucket;
+    fidx.key = cmp.reply.key;
+    fidx.bucket = cmp.reply.bucket;
     fidx.tags = [];
 
     idx.files = [fidx];
