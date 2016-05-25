@@ -60,18 +60,13 @@ var MainCtl = React.createClass({
     this.setState(this.getInitialState());
   },
 
-  onUploadSuccess: function(cmp) {
-    console.log("file uploaded and index updated, want indexes: %o", cmp);
-  },
-
   render: function() {
     var component;
     if (this.state.logged) {
       component =
         <div>
           <HelloBox mbox={this.state.mbox} onLogout={this.onLogout} />
-          <ListCtl list_url={this.props.list} get_url={this.props.get} meta_tag={this.state.meta_tag} />
-          <UploadCtl upload_url={this.props.upload} get_url={this.props.get} index_url={this.props.index} onUploadSuccess={this.onUploadSuccess} />
+          <ListCtl list_url={this.props.list} get_url={this.props.get} meta_tag={this.state.meta_tag} upload_url={this.props.upload} index_url={this.props.index}/>
         </div>
     } else {
       component =

@@ -144,6 +144,72 @@ var ListCtl = React.createClass({
     this.loadFromServer(to, this.onClickedTagLoaded, this.onLoadError);
   },
 
+  needMetaUpdate: function(idx) {
+    for (var i = 0; i < this.state.meta_tag.keys.length; ++i) {
+      var key = this.state.meta_tag.keys[i];
+      if (idx == key.key)
+        return false;
+    }
+
+    return true;
+  },
+
+  needClickedUpdate: function(idx, file) {
+    if (!this.state.clicked_tag.name.key)
+      return false;
+
+    if (this.state.clicked_tag.name.key != idx)
+      return false;
+
+    for (var i = 0; i < this.state.clicked_tag.keys.length; ++i) {
+      var key = this.state.clicked_tag.keys[i];
+      if (file == key.key)
+        return false;
+    }
+
+    return true;
+  },
+
+  onUploadSuccess: function(cmp) {
+    if (!cmp.index || !cmp.index.files || cmp.index.files.length < 1)
+      return;
+
+    var need_meta_update = false;
+    var need_clicked_update = false;
+    for (var i = 0; i < cmp.index.files.length; ++i) {
+      var file = cmp.index.files[i];
+
+      for (var j = 0; j < file.indexes.length; ++j) {
+        var idx = file.indexes[j];
+
+        if (this.needClickedUpdate(idx, cmp.file)) {
+          need_clicked_update = true;
+        }
+
+        if (this.needMetaUpdate(idx)) {
+          need_meta_update = true;
+        }
+
+        if (need_meta_update && need_clicked_update)
+          break;
+      }
+
+      if (need_meta_update && need_clicked_update)
+        break;
+    }
+
+    if (need_meta_update) {
+      this.componentDidMount();
+    }
+
+    if (need_clicked_update) {
+      var to = {};
+      to.tags = [idx];
+
+      this.loadFromServer(to, this.onClickedTagLoaded, this.onLoadError);
+    }
+  },
+
   render: function() {
     return (
       <div>
@@ -153,6 +219,9 @@ var ListCtl = React.createClass({
         <hr/>
         <div className="clickedTag">
           <ListKeys list_tag={this.state.clicked_tag} get_url={this.props.get_url} />
+        </div>
+        <div className="uploadBox">
+          <UploadCtl upload_url={this.props.upload_url} get_url={this.props.get_url} index_url={this.props.index_url} onUploadSuccess={this.onUploadSuccess} />
         </div>
       </div>
     );
