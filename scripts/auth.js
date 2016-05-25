@@ -137,7 +137,7 @@ var AuthBox = React.createClass({
       }.bind(this),
       error: function(xhr, status, err) {
         this.setState(this.getInitialState());
-        this.props.onError(status, err.toString());
+        this.props.onError({status: status, error: err.toString(), data: xhr.responseText});
       }.bind(this)
     });
   },
