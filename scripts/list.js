@@ -1,4 +1,4 @@
-var TagObject = React.createClass({
+var TagInfo = React.createClass({
   onClick: function(event) {
     event.preventDefault();
     this.props.onClick(this.props.obj);
@@ -9,66 +9,48 @@ var TagObject = React.createClass({
     var d = new Date(ts.tsec * 1000 + ts.tnsec / 1000000.0);
     return(
       <div>
-        <a href="#" onClick={this.onClick}>{this.props.obj.key}</a>, last time updated: {d.toString()}
-      </div>
-    );
-  }
-});
-
-var ListTagsBox = React.createClass({
-  onClick: function(key) {
-    this.props.onClick(this.props.tag, key);
-  },
-
-  render: function() {
-    var listNodes = this.props.keys.map(function(key) {
-      console.log("ListTagsBox: keys: key: %o", key);
-      return (
-        <TagObject obj={key} onClick={this.onClick} key={key.id} />
-      );
-    }, this);
-
-    return (
-      <div className="listNodes">
-        <div>Your metadata tag: bucket: {this.props.tag.bucket}, key: {this.props.tag.key}</div>
-        <div>You have files uploaded into these tags (click to get list of keys below):</div>
-        {listNodes}
+        Tag: <a href="#" onClick={this.onClick}>{this.props.obj.key}</a>, last time updated: {d.toString()}
       </div>
     );
   }
 });
 
 var ListTags = React.createClass({
+  onClick: function(key) {
+    this.props.onClick(this.props.list_tag, key);
+  },
+
   render: function() {
     console.log("ListTags: render: props: %o", this.props);
-    var listTags = this.props.tags.map(function(tag) {
-      if (tag.error && tag.error.code != 0) {
-        console.log("ListTags: render: error: %o", tag.error);
-        return null;
-      }
-
+    var listTags = this.props.list_tag.keys.map(function(key) {
+      console.log("ListTags: keys: key: %o", key);
       return (
-        <ListTagsBox tag={tag.tag} keys={tag.keys} onClick={this.props.onClick} key={tag.tag} />
+        <TagInfo obj={key} onClick={this.onClick} key={key.id} />
       );
     }, this);
 
-    var listKeys = this.props.clicked_tag.keys.map(function(key) {
+    return (
+      <div>
+        {listTags}
+      </div>
+    );
+  }
+});
+
+var ListKeys = React.createClass({
+  render: function() {
+    console.log("ListKeys: props: %o", this.props);
+
+    var listKeys = this.props.list_tag.keys.map(function(key) {
       return (
         <KeyInfo get_url={this.props.get_url} bucket={key.bucket} filename={key.key} key={key.key} />
       );
     }, this);
 
     return (
-      <div className="listTags">
-        <div className="listMetaTags">
-          {listTags}
-        </div>
-        <hr/>
-        <div className="listKeys">
-          {this.props.clicked_tag.name.key ? "Listing files for tag " + this.props.clicked_tag.name.key : null}
-          {listKeys}
-        </div>
-        <hr/>
+      <div>
+        { this.props.list_tag.name.key ? "Listing files for tag " + this.props.list_tag.name.key : null }
+        {listKeys}
       </div>
     );
   }
@@ -77,8 +59,9 @@ var ListTags = React.createClass({
 var ListCtl = React.createClass({
   getInitialState: function() {
     return {
-      tags_object: {
-        tags: [],
+      meta_tag: {
+        name: this.props.meta_tag,
+        keys: [],
       },
 
       clicked_tag: {
@@ -88,77 +71,90 @@ var ListCtl = React.createClass({
     }
   },
 
-  loadTagsFromServer: function(tags) {
-    console.log("loadTagsFromServer: request: %o", tags);
+  loadFromServer: function(tags, success, error) {
+    console.log("loadFromServer: request: %o", tags);
     $.ajax({
       url: this.props.list_url,
       type: 'POST',
       data: JSON.stringify(tags),
       dataType: 'json',
       cache: false,
-      success: function(data) {
-        console.log("loadTagsFromServer: reply: %o", data);
-        this.setState({tags_object: data});
+      success: function(reply) {
+        console.log("loadFromServer: reply: %o", reply);
+        success(reply);
       }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.list_url, status, err.toString());
-      }.bind(this)
+      error: error
     });
   },
 
-  loadClickedTagFromServer: function(tags) {
-    console.log("loadClickedTagFromServer: request: %o", tags);
-    $.ajax({
-      url: this.props.list_url,
-      type: 'POST',
-      data: JSON.stringify(tags),
-      dataType: 'json',
-      cache: false,
-      success: function(data) {
-        console.log("loadClickedTagFromServer: reply: %o", data);
-        if (data.error && data.error.code != 0) {
-          console.log("loadTagsFromServer: reply: error: %o", data.error);
-          return;
-        }
+  tagReplyOK: function(reply) {
+    if (!reply.tags || reply.tags.length < 1)
+      return false;
 
-        if (data.tags.length >= 1) {
-          var tag = data.tags[0];
-          this.setState({
-            clicked_tag: {
-              name: tag.tag,
-              keys: tag.keys,
-            }
-          });
-        }
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.list_url, status, err.toString());
-      }.bind(this)
+    var tag = reply.tags[0];
+    if (tag.error)
+      return false;
+
+    return true;
+  },
+
+  onMetaTagLoaded: function(reply) {
+    if (!this.tagReplyOK(reply))
+      return;
+
+    var tag = reply.tags[0];
+    this.setState({
+      meta_tag: {
+        name: this.props.meta_tag,
+        keys: tag.keys,
+      }
     });
   },
 
-  onClick: function(tag, key) {
-    var tags = {};
-    tags["tags"] = [key.key];
+  onClickedTagLoaded: function(reply) {
+    if (!this.tagReplyOK(reply))
+      return;
 
-    this.loadClickedTagFromServer(tags);
+    var tag = reply.tags[0];
+    this.setState({
+      clicked_tag: {
+        name: tag.tag,
+        keys: tag.keys,
+      }
+    });
+  },
+
+  onLoadError: function(xhr, status, err) {
+        console.error("onLoadError: status: %d, error: %s, data: %s", status, err.toString(), xhr.responseText);
   },
 
   componentDidMount: function() {
-    var tags = {};
+    var to = {};
+    to.tags = [];
 
-    if (this.state.tags_object) {
-      tags = this.state.tags_object;
-    } else {
-      tags["tags"] = [];
-    }
+    this.loadFromServer(to, this.onMetaTagLoaded, this.onLoadError);
+  },
 
-    this.loadTagsFromServer(tags);
+  onMetaTagClick: function(tag, key) {
+    console.log("onMetaTagClick: tag: %o, key: %o", tag, key);
+
+    var to = {};
+    to.tags = [key.key];
+
+    this.loadFromServer(to, this.onClickedTagLoaded, this.onLoadError);
   },
 
   render: function() {
     return (
-      <ListTags tags={this.state.tags_object.tags} onClick={this.onClick} clicked_tag={this.state.clicked_tag} get_url={this.props.get_url} />
+      <div>
+        <div className="metaTag">
+          <ListTags list_tag={this.state.meta_tag} onClick={this.onMetaTagClick} />
+        </div>
+        <hr/>
+        <div className="clickedTag">
+          <ListKeys list_tag={this.state.clicked_tag} get_url={this.props.get_url} />
+        </div>
+      </div>
     );
   }
 
