@@ -12,7 +12,7 @@ var Empty = React.createClass({
   render: function() {
     return (
       <div className="emptyClass">
-        You are looking at translation creation site, please login or sign up.
+        {this.props.message}
       </div>
     );
   }
@@ -24,40 +24,63 @@ var MainCtl = React.createClass({
     return {
       logged: false,
       mbox: {},
+      meta_tag: {
+        bucket: '',
+        key: 'tags',
+      },
+      auth_message: 'You are looking at translation creation site, please login or sign up.',
     };
   },
 
   onSuccess: function(data) {
-    this.setState({logged: true, mbox: data});
-    window.logged = true;
+    this.setState({
+      logged: true,
+      mbox: data,
+      meta_tag: {
+        bucket: data.meta_bucket,
+        key: data.meta_index,
+      }
+    });
   },
   onError: function(data) {
+    console.log('auth error: %o', data);
     this.onLogout();
+
+    var reply = JSON.parse(data.data);
+    var message = 'Auth error';
+
+    if (reply.error) {
+      message = 'Auth error: ' + reply.error.message;
+    }
+
+    this.setState({auth_message: message});
   },
 
   onLogout: function() {
     this.setState(this.getInitialState());
-    window.logged = false;
+  },
+
+  onUploadSuccess: function(indexes) {
+    console.log("file uploaded and index updated, want indexes: %o", indexes);
+    this.setState({
+      meta_tag: this.state.meta_tag});
   },
 
   render: function() {
-    var tags = {};
-    tags["tags"] = [];
-
     var component;
     if (this.state.logged) {
       component =
         <div>
           <HelloBox mbox={this.state.mbox} onLogout={this.onLogout} />
-          <ListCtl list_url={this.props.list} get_url={this.props.get} tags={tags} />
-          <UploadCtl upload_url={this.props.upload} get_url={this.props.get} index_url={this.props.index} />
+          <ListCtl list_url={this.props.list} get_url={this.props.get} meta_tag={this.state.meta_tag} />
+          <UploadCtl upload_url={this.props.upload} get_url={this.props.get} index_url={this.props.index} onUploadSuccess={this.onUploadSuccess} />
         </div>
     } else {
       component =
         <div>
           <AuthBox user_login={this.props.user_login} user_signup={this.props.user_signup}
             onSuccess={this.onSuccess} onError={this.onError} />
-          <Empty />
+          <Empty message={this.state.auth_message} />
         </div>
     }
 
