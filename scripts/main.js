@@ -60,10 +60,8 @@ var MainCtl = React.createClass({
     this.setState(this.getInitialState());
   },
 
-  onUploadSuccess: function(indexes) {
-    console.log("file uploaded and index updated, want indexes: %o", indexes);
-    this.setState({
-      meta_tag: this.state.meta_tag});
+  onUploadSuccess: function(cmp) {
+    console.log("file uploaded and index updated, want indexes: %o", cmp);
   },
 
   render: function() {

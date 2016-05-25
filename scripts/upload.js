@@ -131,6 +131,8 @@ var UploadCtl = React.createClass({
         var cmps = this.state.completions;
         var new_cmps = cmps.concat([cmp]);
         this.setState({completions: new_cmps});
+
+        this.props.onUploadSuccess(cmp);
       }.bind(this),
       error: function(jqXHR, textStatus, err) {
         var status = jqXHR.status;
