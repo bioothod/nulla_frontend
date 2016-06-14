@@ -35,7 +35,7 @@ var MainCtl = React.createClass({
   onSuccess: function(data) {
     this.setState({
       logged: true,
-      mbox: data,
+      mbox: data.mailbox,
       meta_tag: {
         bucket: data.meta_bucket,
         key: data.meta_index,
@@ -46,11 +46,13 @@ var MainCtl = React.createClass({
     console.log('auth error: %o', data);
     this.onLogout();
 
-    var reply = JSON.parse(data.data);
-    var message = 'Auth error';
+    var message = 'Auth error, status: ' + data.status;
+    if (data.data) {
+      var reply = JSON.parse(data.data);
 
-    if (reply.error) {
-      message = 'Auth error: ' + reply.error.message;
+      if (reply.error) {
+        message += ", error: " + reply.error;
+      }
     }
 
     this.setState({auth_message: message});
@@ -85,10 +87,12 @@ var MainCtl = React.createClass({
   }
 });
 
+var auth_host = "http://odin.reverbrain.com:8081"
+var user_login = auth_host + "/login";
+var user_signup = auth_host + "/signup";
+var user_update = auth_host + "/update";
+
 var host = "http://odin.reverbrain.com:8080";
-var user_login = host + "/user_login";
-var user_signup = host + "/user_signup";
-var user_update = host + "/user_update";
 var upload = host + "/upload";
 var get = host + "/get";
 var index = host + "/index";

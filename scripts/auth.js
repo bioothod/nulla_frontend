@@ -131,12 +131,17 @@ var AuthBox = React.createClass({
       url: url,
       dataType: 'json',
       type: 'POST',
-      data: JSON.stringify(auth),
+      data: auth,
       success: function(data) {
         this.props.onSuccess(data);
       }.bind(this),
       error: function(xhr, status, err) {
         this.setState(this.getInitialState());
+        console.log("jquery error: xhr: %o", xhr);
+        var status = xhr.status;
+        if (xhr.status === 0) {
+          status = -22;
+        }
         this.props.onError({status: status, error: err.toString(), data: xhr.responseText});
       }.bind(this)
     });
