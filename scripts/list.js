@@ -88,11 +88,14 @@ var ListCtl = React.createClass({
   },
 
   tagReplyOK: function(reply) {
-    if (!reply.tags || reply.tags.length < 1)
+    if (!reply.reply)
       return false;
 
-    var tag = reply.tags[0];
-    if (tag.error)
+    if (reply.error)
+      return false;
+
+    var lr = reply.reply;
+    if (!lr.tags || lr.tags.length < 1)
       return false;
 
     return true;
@@ -102,7 +105,8 @@ var ListCtl = React.createClass({
     if (!this.tagReplyOK(reply))
       return;
 
-    var tag = reply.tags[0];
+    var lr = reply.reply;
+    var tag = lr.tags[0];
     this.setState({
       meta_tag: {
         name: this.props.meta_tag,
@@ -115,7 +119,8 @@ var ListCtl = React.createClass({
     if (!this.tagReplyOK(reply))
       return;
 
-    var tag = reply.tags[0];
+    var lr = reply.reply;
+    var tag = lr.tags[0];
     this.setState({
       clicked_tag: {
         name: tag.tag,
