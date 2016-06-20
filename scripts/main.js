@@ -87,7 +87,7 @@ var MainCtl = React.createClass({
   }
 });
 
-var auth_host = "http://odin.reverbrain.com:8081"
+var auth_host = "http://odin.reverbrain.com:8080"
 var user_login = auth_host + "/login";
 var user_signup = auth_host + "/signup";
 var user_update = auth_host + "/update";
@@ -95,8 +95,10 @@ var user_update = auth_host + "/update";
 var host = "http://odin.reverbrain.com:8080";
 var upload = host + "/upload";
 var get = host + "/get";
-var index = host + "/index";
-var list = host + "/list";
+
+var index_host = "http://odin.reverbrain.com:8080"
+var index = index_host + "/index";
+var list = index_host + "/list";
 
 ReactDOM.render(
   <MainCtl
