@@ -74,13 +74,13 @@ var UploadStatus = React.createClass({
     var upload_completions = this.props.completions.map(function(cmp) {
       console.log("UploadStatus: %o", cmp);
       return (
-        <UploadCompletion cmp={cmp} get_url={this.props.get_url} key={cmp.file} />
+        <UploadCompletion cmp={cmp} get_url={this.props.get_url} key={cmp.time.toString() + "/" + cmp.file} />
       );
     }, this);
 
     var upload_errors = this.props.errors.map(function(cmp) {
       return (
-        <UploadError filename={cmp.file} reply={cmp} key={cmp.file} />
+        <UploadError filename={cmp.file} reply={cmp} key={cmp.time.toString() + "/" + cmp.file} />
       );
     }, this);
 
@@ -144,10 +144,16 @@ var UploadCtl = React.createClass({
   },
 
   upload_completed: function(cmp) {
+    var d = new Date();
+    cmp.time = d.getTime();
+
     this.index_update(cmp);
   },
 
   upload_error: function(cmp) {
+    var d = new Date();
+    cmp.time = d.getTime();
+
     var cmps = this.state.errors;
     var new_cmps = cmps.concat([cmp]);
     this.setState({errors: new_cmps});
