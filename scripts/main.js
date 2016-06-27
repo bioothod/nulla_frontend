@@ -65,7 +65,7 @@ var MainCtl = React.createClass({
             list_url={this.props.list} list_meta_url={this.props.list_meta}
             index_url={this.props.index}
             upload_url={this.props.upload}
-            get_url={this.props.get}
+            get_url={this.props.get} get_key_url={this.props.get_key}
           />
         </div>
     } else {
@@ -97,6 +97,7 @@ var user_update = auth_host + "/update";
 
 var host = "http://odin.reverbrain.com:8080";
 var upload = host + "/upload";
+var get_key = host + "/get_key";
 var get = host + "/get";
 
 var index_host = "http://odin.reverbrain.com:8080"
@@ -108,7 +109,7 @@ ReactDOM.render(
   <MainCtl
     user_login={user_login} user_signup={user_signup} user_update={user_update}
     index={index} list={list} list_meta={list_meta}
-    upload={upload} get={get}
+    upload={upload} get={get} get_key={get_key}
   />,
   document.getElementById('main')
 );

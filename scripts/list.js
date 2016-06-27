@@ -164,6 +164,7 @@ var ListCtl = React.createClass({
         <div className="uploadBox">
           <UploadCtl upload_url={this.props.upload_url}
             get_url={this.props.get_url}
+            get_key_url={this.props.get_key_url}
             index_url={this.props.index_url}
             onUploadSuccess={this.onUploadSuccess} />
         </div>

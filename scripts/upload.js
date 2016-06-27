@@ -43,7 +43,9 @@ var UploadCompletion = React.createClass({
   render: function() {
     var cmp = this.props.cmp;
     var io = cmp.reply.reply[0];
-    var main_info = <KeyInfo get_url={this.props.get_url}
+    var main_info = <KeyInfo
+                      get_url={this.props.get_url}
+                      get_key_url={this.props.get_key_url}
                       bucket={io.bucket}
                       xkey={io.key}
                       filename={cmp.file}
@@ -52,7 +54,9 @@ var UploadCompletion = React.createClass({
 
     var meta_info = null;
     if (io.meta_key) {
-      meta_info = <KeyInfo get_url={this.props.get_url}
+      meta_info = <KeyInfo
+                    get_url={this.props.get_url}
+                    get_key_url={this.props.get_key_url}
                     bucket={io.meta_bucket}
                     xkey={io.meta_key}
                     filename={cmp.file + " (meta)"}
@@ -84,7 +88,10 @@ var UploadStatus = React.createClass({
   render: function() {
     var upload_completions = this.props.completions.map(function(cmp) {
       return (
-        <UploadCompletion cmp={cmp} get_url={this.props.get_url} key={cmp.time.toString() + "/" + cmp.file} />
+        <UploadCompletion cmp={cmp}
+          get_url={this.props.get_url}
+          get_key_url={this.props.get_key_url}
+          key={cmp.time.toString() + "/" + cmp.file} />
       );
     }, this);
 
@@ -137,7 +144,12 @@ var UploadCtl = React.createClass({
   render: function() {
       return (
         <div className="uploadCtl">
-          <UploadStatus completions={this.state.completions} errors={this.state.errors} get_url={this.props.get_url} />
+          <UploadStatus
+            completions={this.state.completions}
+            errors={this.state.errors}
+            get_url={this.props.get_url}
+            get_key_url={this.props.get_key_url}
+          />
           <UploadBox url={this.props.upload_url} onSuccess={this.upload_completed} onError={this.upload_error} />
         </div>
       );
