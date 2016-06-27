@@ -1,16 +1,6 @@
 var UploadBox = React.createClass({
-  onSuccess: function(cmp) {
-    this.props.onSuccess(cmp);
-  },
-  onError: function(cmp) {
-    this.props.onError(cmp);
-  },
-
   onDrop: function (files) {
-    this.props.uploadInit();
-
     files.forEach((file)=> {
-      console.log('Uploading file: %s', file.name);
 
       var data = new FormData();
       data.append(file.name, file);
@@ -24,7 +14,7 @@ var UploadBox = React.createClass({
         processData: false, // Don't process the files
         contentType: false, // Set content type to false as jQuery will tell the server its a query string request
         success: function(data, textStatus, jqXHR) {
-          this.onSuccess({file: file.name, status: jqXHR.status, reply: data});
+          this.props.onSuccess({file: file.name, status: jqXHR.status, reply: data});
         }.bind(this),
         error: function(jqXHR, textStatus, err) {
           var status = jqXHR.status;
@@ -32,7 +22,7 @@ var UploadBox = React.createClass({
             status = -22;
           }
 
-          this.onError({file: file.name, status: status, text: jqXHR.responseText});
+          this.props.onError({file: file.name, status: status, text: jqXHR.responseText});
         }.bind(this),
       });
     });
@@ -93,7 +83,6 @@ var UploadError = React.createClass({
 var UploadStatus = React.createClass({
   render: function() {
     var upload_completions = this.props.completions.map(function(cmp) {
-      console.log("UploadStatus: %o", cmp);
       return (
         <UploadCompletion cmp={cmp} get_url={this.props.get_url} key={cmp.time.toString() + "/" + cmp.file} />
       );
@@ -124,51 +113,16 @@ var UploadCtl = React.createClass({
     };
   },
 
-  upload_init: function() {
-    this.setState({completions: []});
-  },
-
-  index_update: function(cmp) {
-    var idx = {};
-    var fidx = {};
-    fidx.key = cmp.reply.key;
-    fidx.bucket = cmp.reply.bucket;
-    fidx.tags = [];
-
-    idx.files = [fidx];
-
-    $.ajax({
-      url: this.props.index_url,
-      type: 'POST',
-      data: JSON.stringify(idx),
-      cache: false,
-      dataType: 'json',
-      processData: false, // Don't process the files
-      contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-      success: function(data) {
-        cmp.index = data;
-        var cmps = this.state.completions;
-        var new_cmps = cmps.concat([cmp]);
-        this.setState({completions: new_cmps});
-
-        this.props.onUploadSuccess(cmp);
-      }.bind(this),
-      error: function(jqXHR, textStatus, err) {
-        var status = jqXHR.status;
-        if (status === 0) {
-          status = -22;
-        }
-
-        this.upload_error({file: cmp.file, status: status, data: jqXHR.responseText});
-      }.bind(this),
-    });
-  },
-
   upload_completed: function(cmp) {
     var d = new Date();
     cmp.time = d.getTime();
     console.log("upload completed: %o", cmp);
-    this.index_update(cmp);
+
+    var cmps = this.state.completions;
+    var new_cmps = cmps.concat([cmp]);
+    this.setState({completions: new_cmps});
+
+    this.props.onUploadSuccess(cmp);
   },
 
   upload_error: function(cmp) {
@@ -184,8 +138,7 @@ var UploadCtl = React.createClass({
       return (
         <div className="uploadCtl">
           <UploadStatus completions={this.state.completions} errors={this.state.errors} get_url={this.props.get_url} />
-          <UploadBox url={this.props.upload_url}
-            onSuccess={this.upload_completed} onError={this.upload_error} uploadInit={this.upload_init} />
+          <UploadBox url={this.props.upload_url} onSuccess={this.upload_completed} onError={this.upload_error} />
         </div>
       );
   }

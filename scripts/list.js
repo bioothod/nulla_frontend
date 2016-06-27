@@ -5,11 +5,9 @@ var TagInfo = React.createClass({
   },
 
   render: function() {
-    var ts = this.props.obj.timestamp;
-    var d = new Date(ts.tsec * 1000 + ts.tnsec / 1000000.0);
     return(
       <div>
-        Tag: <a href="#" onClick={this.onClick}>{this.props.obj.key}</a>, last time updated: {d.toString()}
+        Tag: <a href="#" onClick={this.onClick}>{this.props.obj.name}</a>
       </div>
     );
   }
@@ -21,11 +19,9 @@ var ListTags = React.createClass({
   },
 
   render: function() {
-    console.log("ListTags: render: props: %o", this.props);
     var listTags = this.props.list_tag.keys.map(function(key) {
-      console.log("ListTags: keys: key: %o", key);
       return (
-        <TagInfo obj={key} onClick={this.onClick} key={key.id} />
+        <TagInfo obj={key} onClick={this.onClick} key={key.name} />
       );
     }, this);
 
@@ -39,17 +35,15 @@ var ListTags = React.createClass({
 
 var ListKeys = React.createClass({
   render: function() {
-    console.log("ListKeys: props: %o", this.props);
-
     var listKeys = this.props.list_tag.keys.map(function(key) {
       return (
-        <KeyInfo get_url={this.props.get_url} bucket={key.bucket} filename={key.key} key={key.key} />
+        <KeyInfo get_url={this.props.get_url} bucket={key.bucket} filename={key.name} key={key.key} xkey={key.key} />
       );
     }, this);
 
     return (
       <div>
-        { this.props.list_tag.name.key ? "Listing files for tag " + this.props.list_tag.name.key : null }
+        { this.props.list_tag.name.name ? "Listing files for tag " + this.props.list_tag.name.name : null }
         {listKeys}
       </div>
     );
@@ -65,22 +59,20 @@ var ListCtl = React.createClass({
       },
 
       clicked_tag: {
-        name: {},
+        name: '',
         keys: [],
       }
     }
   },
 
-  loadFromServer: function(tags, success, error) {
-    console.log("loadFromServer: request: %o", tags);
+  loadFromServer: function(url, tags, success, error) {
     $.ajax({
-      url: this.props.list_url,
+      url: url,
       type: 'POST',
       data: JSON.stringify(tags),
       dataType: 'json',
       cache: false,
       success: function(reply) {
-        console.log("loadFromServer: reply: %o", reply);
         success(reply);
       }.bind(this),
       error: error
@@ -135,83 +127,27 @@ var ListCtl = React.createClass({
 
   componentDidMount: function() {
     var to = {};
-    to.tags = [];
+    to.tags = [this.props.meta_tag];
 
-    this.loadFromServer(to, this.onMetaTagLoaded, this.onLoadError);
+    this.loadFromServer(this.props.list_meta_url, to, this.onMetaTagLoaded, this.onLoadError);
   },
 
   onMetaTagClick: function(tag, key) {
-    console.log("onMetaTagClick: tag: %o, key: %o", tag, key);
-
     var to = {};
-    to.tags = [key.key];
+    to.tags = [key.name];
 
-    this.loadFromServer(to, this.onClickedTagLoaded, this.onLoadError);
-  },
-
-  needMetaUpdate: function(idx) {
-    for (var i = 0; i < this.state.meta_tag.keys.length; ++i) {
-      var key = this.state.meta_tag.keys[i];
-      if (idx == key.key)
-        return false;
-    }
-
-    return true;
-  },
-
-  needClickedUpdate: function(idx, file) {
-    if (!this.state.clicked_tag.name.key)
-      return false;
-
-    if (this.state.clicked_tag.name.key != idx)
-      return false;
-
-    for (var i = 0; i < this.state.clicked_tag.keys.length; ++i) {
-      var key = this.state.clicked_tag.keys[i];
-      if (file == key.key)
-        return false;
-    }
-
-    return true;
+    this.loadFromServer(this.props.list_url, to, this.onClickedTagLoaded, this.onLoadError);
   },
 
   onUploadSuccess: function(cmp) {
-    if (!cmp.index || !cmp.index.files || cmp.index.files.length < 1)
-      return;
+    var to = {};
+    to.tags = [this.props.meta_tag];
+    this.loadFromServer(this.props.list_meta_url, to, this.onMetaTagLoaded, this.onLoadError);
 
-    var need_meta_update = false;
-    var need_clicked_update = false;
-    for (var i = 0; i < cmp.index.files.length; ++i) {
-      var file = cmp.index.files[i];
-
-      for (var j = 0; j < file.indexes.length; ++j) {
-        var idx = file.indexes[j];
-
-        if (this.needClickedUpdate(idx, cmp.file)) {
-          need_clicked_update = true;
-        }
-
-        if (this.needMetaUpdate(idx)) {
-          need_meta_update = true;
-        }
-
-        if (need_meta_update && need_clicked_update)
-          break;
-      }
-
-      if (need_meta_update && need_clicked_update)
-        break;
-    }
-
-    if (need_meta_update) {
-      this.componentDidMount();
-    }
-
-    if (need_clicked_update) {
+    if (this.state.clicked_tag.name != '') {
       var to = {};
-      to.tags = [idx];
-
-      this.loadFromServer(to, this.onClickedTagLoaded, this.onLoadError);
+      to.tags = [this.state.clicked_tag.name];
+      this.loadFromServer(this.props.list_url, to, this.onClickedTagLoaded, this.onLoadError);
     }
   },
 
@@ -226,7 +162,10 @@ var ListCtl = React.createClass({
           <ListKeys list_tag={this.state.clicked_tag} get_url={this.props.get_url} />
         </div>
         <div className="uploadBox">
-          <UploadCtl upload_url={this.props.upload_url} get_url={this.props.get_url} index_url={this.props.index_url} onUploadSuccess={this.onUploadSuccess} />
+          <UploadCtl upload_url={this.props.upload_url}
+            get_url={this.props.get_url}
+            index_url={this.props.index_url}
+            onUploadSuccess={this.onUploadSuccess} />
         </div>
       </div>
     );

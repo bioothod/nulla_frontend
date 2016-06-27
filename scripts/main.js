@@ -24,10 +24,7 @@ var MainCtl = React.createClass({
     return {
       logged: false,
       mbox: {},
-      meta_tag: {
-        bucket: '',
-        key: 'tags',
-      },
+      meta_tag: 'tags',
       auth_message: 'You are looking at translation creation site, please login or sign up.',
     };
   },
@@ -36,10 +33,6 @@ var MainCtl = React.createClass({
     this.setState({
       logged: true,
       mbox: data.mailbox,
-      meta_tag: {
-        bucket: data.meta_bucket,
-        key: data.meta_index,
-      }
     });
   },
   onError: function(data) {
@@ -68,13 +61,23 @@ var MainCtl = React.createClass({
       component =
         <div>
           <HelloBox mbox={this.state.mbox} onLogout={this.onLogout} />
-          <ListCtl list_url={this.props.list} get_url={this.props.get} meta_tag={this.state.meta_tag} upload_url={this.props.upload} index_url={this.props.index}/>
+          <ListCtl meta_tag={this.state.meta_tag}
+            list_url={this.props.list} list_meta_url={this.props.list_meta}
+            index_url={this.props.index}
+            upload_url={this.props.upload}
+            get_url={this.props.get}
+          />
         </div>
     } else {
       component =
         <div>
-          <AuthBox user_login={this.props.user_login} user_signup={this.props.user_signup}
-            onSuccess={this.onSuccess} onError={this.onError} />
+          <AuthBox
+            user_login={this.props.user_login}
+            user_signup={this.props.user_signup}
+            onSuccess={this.onSuccess}
+            onError={this.onError}
+          />
+
           <Empty message={this.state.auth_message} />
         </div>
     }
@@ -99,11 +102,12 @@ var get = host + "/get";
 var index_host = "http://odin.reverbrain.com:8080"
 var index = index_host + "/index";
 var list = index_host + "/list";
+var list_meta = index_host + "/list_meta";
 
 ReactDOM.render(
   <MainCtl
     user_login={user_login} user_signup={user_signup} user_update={user_update}
-    index={index} list={list}
+    index={index} list={list} list_meta={list_meta}
     upload={upload} get={get}
   />,
   document.getElementById('main')
