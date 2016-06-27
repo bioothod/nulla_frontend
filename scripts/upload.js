@@ -51,9 +51,30 @@ var UploadBox = React.createClass({
 
 var UploadCompletion = React.createClass({
   render: function() {
-    var obj = this.props.cmp.reply;
+    var cmp = this.props.cmp;
+    var io = cmp.reply.reply[0];
+    var main_info = <KeyInfo get_url={this.props.get_url}
+                      bucket={io.bucket}
+                      xkey={io.key}
+                      filename={cmp.file}
+                      size={io.size}
+                    />
+
+    var meta_info = null;
+    if (io.meta_key) {
+      meta_info = <KeyInfo get_url={this.props.get_url}
+                    bucket={io.meta_bucket}
+                    xkey={io.meta_key}
+                    filename={cmp.file + " (meta)"}
+                    size={io.meta_size}
+                  />
+    }
+
     return (
-      <KeyInfo get_url={this.props.get_url} bucket={obj.bucket} filename={obj.key} />
+      <div>
+        {main_info}
+        {meta_info}
+      </div>
     );
   }
 });
@@ -146,7 +167,7 @@ var UploadCtl = React.createClass({
   upload_completed: function(cmp) {
     var d = new Date();
     cmp.time = d.getTime();
-
+    console.log("upload completed: %o", cmp);
     this.index_update(cmp);
   },
 
