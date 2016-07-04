@@ -1,3 +1,7 @@
+function startsWith(str, prefix) {
+    return str.indexOf(prefix, 0) === 0;
+}
+
 var TagInfo = React.createClass({
   onClick: function(event) {
     event.preventDefault();
@@ -37,7 +41,9 @@ var ListKeys = React.createClass({
   render: function() {
     var listKeys = this.props.list_tag.keys.map(function(key) {
       return (
-        <KeyInfo get_url={this.props.get_url} bucket={key.bucket} filename={key.name} key={key.key} xkey={key.key} />
+        <KeyInfo
+          obj={key} key={key.timestamp.toString() + "/" + key.key} onClick={this.props.onClick}
+        />
       );
     }, this);
 
@@ -53,6 +59,9 @@ var ListKeys = React.createClass({
 var ListCtl = React.createClass({
   getInitialState: function() {
     return {
+      content: {},
+      ctype: '',
+
       meta_tag: {
         name: this.props.meta_tag,
         keys: [],
@@ -151,22 +160,41 @@ var ListCtl = React.createClass({
     }
   },
 
+  onKeyClick: function(obj) {
+    var ctype = Mime.lookup(obj.name);
+    if (startsWith(ctype, "audio/") || startsWith(ctype, "video/")) {
+      var url = this.props.meta_json_url + "/" + obj.bucket + "/" + obj.name;
+      $.ajax({
+        url: url,
+        type: 'GET',
+        cache: false,
+        success: function(reply) {
+          obj.media = reply;
+          this.setState({content: obj, ctype: ctype});
+        }.bind(this),
+        error: function(xhr, status, err) {
+          console.error("onKeyClick: status: %d, error: %s, data: %s", status, err.toString(), xhr.responseText);
+        }
+      });
+    } else {
+      this.setState({content: obj, ctype: ctype});
+    }
+  },
+
   render: function() {
     return (
-      <div>
+      <div className="listCtl">
         <div className="metaTag">
           <ListTags list_tag={this.state.meta_tag} onClick={this.onMetaTagClick} />
         </div>
-        <hr/>
         <div className="clickedTag">
-          <ListKeys list_tag={this.state.clicked_tag} get_url={this.props.get_url} />
+          <ListKeys list_tag={this.state.clicked_tag} onClick={this.onKeyClick} />
         </div>
         <div className="uploadBox">
-          <UploadCtl upload_url={this.props.upload_url}
-            get_url={this.props.get_url}
-            get_key_url={this.props.get_key_url}
-            index_url={this.props.index_url}
-            onUploadSuccess={this.onUploadSuccess} />
+          <UploadCtl upload_url={this.props.upload_url} onClick={this.onKeyClick} onUploadSuccess={this.onUploadSuccess} />
+        </div>
+        <div className="contentBox">
+          <ContentCtl obj={this.state.content} get_url={this.props.get_url} ctype={this.state.ctype} />
         </div>
       </div>
     );

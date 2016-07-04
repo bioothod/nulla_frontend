@@ -43,32 +43,8 @@ var UploadCompletion = React.createClass({
   render: function() {
     var cmp = this.props.cmp;
     var io = cmp.reply.reply[0];
-    var main_info = <KeyInfo
-                      get_url={this.props.get_url}
-                      get_key_url={this.props.get_key_url}
-                      bucket={io.bucket}
-                      xkey={io.key}
-                      filename={cmp.file}
-                      size={io.size}
-                    />
-
-    var meta_info = null;
-    if (io.meta_key) {
-      meta_info = <KeyInfo
-                    get_url={this.props.get_url}
-                    get_key_url={this.props.get_key_url}
-                    bucket={io.meta_bucket}
-                    xkey={io.meta_key}
-                    filename={cmp.file + " (meta)"}
-                    size={io.meta_size}
-                  />
-    }
-
     return (
-      <div>
-        {main_info}
-        {meta_info}
-      </div>
+      <KeyInfo obj={io} onClick={this.props.onClick} />
     );
   }
 });
@@ -88,9 +64,7 @@ var UploadStatus = React.createClass({
   render: function() {
     var upload_completions = this.props.completions.map(function(cmp) {
       return (
-        <UploadCompletion cmp={cmp}
-          get_url={this.props.get_url}
-          get_key_url={this.props.get_key_url}
+        <UploadCompletion cmp={cmp} onClick={this.props.onClick}
           key={cmp.time.toString() + "/" + cmp.file} />
       );
     }, this);
@@ -103,9 +77,9 @@ var UploadStatus = React.createClass({
 
     return (
       <div className="uploadCompletionList">
-        { upload_completions.length >= 1 ? "You have uploaded following files in the last uploading session" : "You have not uploaded any files yet" }
+        <p>{ upload_completions.length >= 1 ? "You have uploaded following files in the last uploading session" : "You have not uploaded any files yet" }</p>
         {upload_completions}
-        { upload_errors.length >= 1 ? "Following files have not been uploaded because of errors" : null }
+        <p>{ upload_errors.length >= 1 ? "Following files have not been uploaded because of errors" : null }</p>
         {upload_errors}
       </div>
     );
@@ -147,8 +121,7 @@ var UploadCtl = React.createClass({
           <UploadStatus
             completions={this.state.completions}
             errors={this.state.errors}
-            get_url={this.props.get_url}
-            get_key_url={this.props.get_key_url}
+            onClick={this.props.onClick}
           />
           <UploadBox url={this.props.upload_url} onSuccess={this.upload_completed} onError={this.upload_error} />
         </div>
