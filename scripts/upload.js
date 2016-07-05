@@ -1,5 +1,7 @@
 var UploadBox = React.createClass({
   onDrop: function (files) {
+    this.props.clear_upload_state();
+
     files.forEach((file)=> {
 
       var data = new FormData();
@@ -94,6 +96,10 @@ var UploadCtl = React.createClass({
     };
   },
 
+  clear_upload_state: function() {
+    this.setState(this.getInitialState());
+  },
+
   upload_completed: function(cmp) {
     var d = new Date();
     cmp.time = d.getTime();
@@ -123,7 +129,8 @@ var UploadCtl = React.createClass({
             errors={this.state.errors}
             onClick={this.props.onClick}
           />
-          <UploadBox url={this.props.upload_url} onSuccess={this.upload_completed} onError={this.upload_error} />
+          <UploadBox url={this.props.upload_url} onSuccess={this.upload_completed} onError={this.upload_error}
+            clear_upload_state={this.clear_upload_state} />
         </div>
       );
   }
