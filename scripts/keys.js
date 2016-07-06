@@ -57,9 +57,9 @@ var ContentCtl = React.createClass({
       return null;
 
     var obj = this.props.obj;
+    var url = this.props.get_url + "/" + obj.bucket + "/" + obj.name;
 
     if (startsWith(this.props.ctype, "image/")) {
-      var url = this.props.get_url + "/" + obj.bucket + "/" + obj.name;
       return (
           <img src={url} />
       );
@@ -69,7 +69,10 @@ var ContentCtl = React.createClass({
       );
     } else {
       return (
+        <div>
           <p>This is unknown object "{obj.name}" with content type "{this.props.ctype}"</p>
+          <p>You can download it over this <a href={url} target="_blank">link</a>.</p>
+        </div>
       );
     }
   }
