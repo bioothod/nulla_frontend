@@ -66,6 +66,7 @@ var MainCtl = React.createClass({
             index_url={this.props.index}
             upload_url={this.props.upload}
             get_url={this.props.get} get_key_url={this.props.get_key} meta_json_url={this.props.get_meta_json}
+            manifest_url={this.props.manifest_url}
           />
         </div>
     } else {
@@ -106,11 +107,14 @@ var index = index_host + "/index";
 var list = index_host + "/list";
 var list_meta = index_host + "/list_meta";
 
+var manifest_url = "http://odin.reverbrain.com:8080/manifest";
+
 ReactDOM.render(
   <MainCtl
     user_login={user_login} user_signup={user_signup} user_update={user_update}
     index={index} list={list} list_meta={list_meta}
     upload={upload} get={get} get_key={get_key} get_meta_json={meta_json}
+    manifest_url={manifest_url}
   />,
   document.getElementById('main')
 );
