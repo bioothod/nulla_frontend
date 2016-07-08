@@ -28,15 +28,31 @@ var MediaInfo = React.createClass({
 
     return null;
   },
+  onDragStart: function(track, event) {
+    event.dataTransfer.setData('text/plain', 'unused');
+
+    var obj = {}
+    obj.name = this.props.obj.name;
+    obj.bucket = this.props.obj.bucket;
+    obj.key = this.props.obj.key;
+    obj.meta_key = this.props.obj.meta_key;
+    obj.track = track;
+    obj.duration_sec = track.media_duration / track.media_timescale;
+
+    window.DraggedObject = obj;
+  },
   render: function() {
     var tracks = this.props.obj.media.tracks.map(function(track) {
+      if (track.audio.sample_rate === 0 && track.video.width === 0)
+        return null;
+
       var media = this.dump_audio_video(track);
       return (
-        <div className="trackInfo" key={track.number}>
+        <div className="trackInfo" draggable="true" key={track.number} onDragStart={this.onDragStart.bind(this, track)}>
           <p>Track number: {track.number}</p>
           <p>Codec: {track.codec}</p>
           <p>Mime type: {track.mime_type}</p>
-          <p>Media Duration: {track.media_duration / track.media_timescale} seconds</p>
+          <p>Duration: {Math.round(track.media_duration / track.media_timescale)} seconds</p>
           <p>Bandwidth: {track.bandwidth} bytes/sec</p>
           {media}
         </div>
@@ -52,31 +68,54 @@ var MediaInfo = React.createClass({
 });
 
 var ContentCtl = React.createClass({
+  componentDidUpdate: function(prevProps, prevState) {
+    if (this.props.obj && this.props.obj.playlist) {
+      // only update content object if it differs, this allows to play video while changing list of files
+      if (this.props.obj != prevProps.obj) {
+        var tmp = document.getElementById('test_video');
+        var player = dashjs.MediaPlayer().create();
+        console.log("Resetting player, test_video: %o", tmp);
+        player.initialize(tmp, this.props.obj.playlist.playlist_url, true);
+      }
+    }
+  },
+
   render: function() {
-    if (!this.props.obj || !this.props.obj.name)
+    var obj = this.props.obj;
+
+    if (!obj.ctype)
       return null;
 
-    var obj = this.props.obj;
-    var url = this.props.get_url + "/" + obj.bucket + "/" + obj.name;
-
-    if (startsWith(this.props.ctype, "image/")) {
+    if (startsWith(obj.ctype, "image/")) {
+      var url = this.props.get_url + "/" + obj.bucket + "/" + obj.name;
       return (
           <img src={url} />
       );
-    } else if (startsWith(this.props.ctype, "audio/") || startsWith(this.props.ctype, "video/")) {
+    } else if (startsWith(obj.ctype, "audio/") || startsWith(obj.ctype, "video/")) {
       return (
           <MediaInfo meta_json_url={this.props.meta_json_url} obj={this.props.obj} />
       );
-    } else {
+    } else if (startsWith(obj.ctype, "playlist/")) {
+      return (
+        <video id="test_video" controls="true" />
+      );
+    } else if (obj.name && obj.bucket) {
+      var url = this.props.get_url + "/" + obj.bucket + "/" + obj.name;
       return (
         <div>
-          <p>This is unknown object "{obj.name}" with content type "{this.props.ctype}"</p>
+          <p>This is unknown object "{obj.name}" with content type "{obj.ctype}"</p>
           <p>You can download it over this <a href={url} target="_blank">link</a>.</p>
         </div>
       );
+    } else {
+      return null;
     }
   }
 });
+
+// there is no way to transfer objects via dataTransfer.setData(), only strings are allowed
+// but this will require additional json pack/unpack, so this global is a workaround
+window.DraggedObject = null;
 
 var KeyInfo = React.createClass({
   onClick: function(event) {
@@ -87,9 +126,10 @@ var KeyInfo = React.createClass({
     var obj = this.props.obj;
     var d = new Date(obj.timestamp);
 
+    var url = this.props.get_url + "/" + obj.bucket + "/" + obj.name;
     return (
       <div className="keyInfo">
-        <p>File: <a href="" onClick={this.onClick}>{obj.name}</a></p>
+        <p>File: <a href={url} onClick={this.onClick}>{obj.name}</a></p>
         <p>Bucket: {obj.bucket}</p>
         <p>Size: {obj.size}</p>
         <p>Created: {d.toISOString()}</p>
