@@ -46,7 +46,7 @@ var UploadCompletion = React.createClass({
     var cmp = this.props.cmp;
     var io = cmp.reply.reply[0];
     return (
-      <KeyInfo obj={io} onClick={this.props.onClick} />
+      <KeyInfo obj={io} onClick={this.props.onClick} get_url={this.props.get_url} />
     );
   }
 });
@@ -66,7 +66,7 @@ var UploadStatus = React.createClass({
   render: function() {
     var upload_completions = this.props.completions.map(function(cmp) {
       return (
-        <UploadCompletion cmp={cmp} onClick={this.props.onClick}
+        <UploadCompletion cmp={cmp} onClick={this.props.onClick} get_url={this.props.get_url}
           key={cmp.time.toString() + "/" + cmp.file} />
       );
     }, this);
@@ -128,6 +128,7 @@ var UploadCtl = React.createClass({
             completions={this.state.completions}
             errors={this.state.errors}
             onClick={this.props.onClick}
+            get_url={this.props.get_url}
           />
           <UploadBox url={this.props.upload_url} onSuccess={this.upload_completed} onError={this.upload_error}
             clear_upload_state={this.clear_upload_state} />
