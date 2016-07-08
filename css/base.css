@@ -26,8 +26,24 @@ code {
   padding: 0 5px;
 }
 
+.signupBox {
+  display: block;
+  padding: 1em;
+}
+.loginBox {
+  display: block;
+  padding: 1em;
+}
+.lsBox {
+  display: block;
+  padding-bottom: 1em;
+}
+.lsBox span {
+  padding-right: 1em;
+}
+
 .listCtl {
-  text-align: center;
+  text-align: left;
   display: flex;
   display: -ms-flexbox;
   display: -webkit-flex;
@@ -35,7 +51,7 @@ code {
 
 .metaTag {
   display: block;
-  text-align: left;
+  padding: 1em;
   -webkit-flex: 1;
   -ms-flex: 1;
   -moz-flex: 1;
@@ -44,7 +60,7 @@ code {
 
 .clickedTag {
   display: block;
-  text-align: center;
+  padding: 1em;
   -webkit-flex: 1;
   -ms-flex: 1;
   -moz-flex: 1;
@@ -54,7 +70,7 @@ code {
 
 .uploadBox {
   display: block;
-  text-align: center;
+  padding: 1em;
   -webkit-flex: 1;
   -ms-flex: 1;
   -moz-flex: 1;
@@ -62,9 +78,9 @@ code {
 }
 
 .keyInfo {
-  text-align: left;
-  padding-bottom: 1em;
+  display: block;
   overflow: auto;
+  padding-bottom: 2em;
   -webkit-flex: 1;
   -ms-flex: 1;
   -moz-flex: 1;
@@ -72,12 +88,12 @@ code {
 }
 
 .keyInfo p {
-	margin: 0em;
+  margin: 0em;
 }
 
 .contentBox {
   display: block;
-  text-align: center;
+  padding: 1em;
   -webkit-flex: 1;
   -ms-flex: 1;
   -moz-flex: 1;
@@ -86,6 +102,12 @@ code {
 }
 
 .contentBox img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.contentBox video {
   display: block;
   width: 100%;
   height: 100%;
@@ -103,5 +125,30 @@ code {
 }
 
 .trackInfo p {
-	margin: 0em;
+  margin: 0em;
+}
+
+.playlistCtl {
+  display: block;
+  padding: 1em;
+  border-width: 1px;
+  border-color: #666;
+  border-style: dashed;
+  border-radius: 5px;
+  overflow: auto;
+}
+
+.playlistCtlMedia {
+  overflow: auto;
+  padding-bottom: 1em;
+}
+
+.playlistCtlMedia p {
+  margin: 0em;
+}
+
+.playlistElement:hover {
+  opacity: 0.5;
+  color: red;
+  font-weight: bold;
 }
