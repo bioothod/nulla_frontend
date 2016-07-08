@@ -39,10 +39,10 @@ var ListTags = React.createClass({
 
 var ListKeys = React.createClass({
   render: function() {
-    var listKeys = this.props.list_tag.keys.map(function(key) {
+    var listKeys = this.props.list_tag.keys.map(function(obj) {
       return (
         <KeyInfo
-          obj={key} key={key.timestamp.toString() + "/" + key.key} onClick={this.props.onClick}
+          obj={obj} key={obj.timestamp.toString() + "/" + obj.key} onClick={this.props.onClick} get_url={this.props.get_url}
         />
       );
     }, this);
@@ -60,7 +60,6 @@ var ListCtl = React.createClass({
   getInitialState: function() {
     return {
       content: {},
-      ctype: '',
 
       meta_tag: {
         name: this.props.meta_tag,
@@ -160,25 +159,42 @@ var ListCtl = React.createClass({
     }
   },
 
-  onKeyClick: function(obj) {
+  GetKeyMetaData: function(obj, success, error) {
     var ctype = Mime.lookup(obj.name);
+    obj.ctype = ctype;
+
     if (startsWith(ctype, "audio/") || startsWith(ctype, "video/")) {
       var url = this.props.meta_json_url + "/" + obj.bucket + "/" + obj.name;
+
       $.ajax({
         url: url,
         type: 'GET',
         cache: false,
         success: function(reply) {
           obj.media = reply;
-          this.setState({content: obj, ctype: ctype});
-        }.bind(this),
-        error: function(xhr, status, err) {
-          console.error("onKeyClick: status: %d, error: %s, data: %s", status, err.toString(), xhr.responseText);
-        }
+          success(obj);
+        },
+        error: error,
       });
     } else {
-      this.setState({content: obj, ctype: ctype});
+      this.setState({content: obj});
     }
+  },
+
+  onKeyClick: function(obj) {
+    this.GetKeyMetaData(
+      obj,
+      function(obj) {
+        this.setState({content: obj});
+      }.bind(this),
+      function(xhr, status, err) {
+        console.error("onKeyClick: status: %d, error: %s, data: %s", status, err.toString(), xhr.responseText);
+      }
+    );
+  },
+
+  onPlay: function(obj) {
+    this.setState({content: obj});
   },
 
   render: function() {
@@ -188,13 +204,18 @@ var ListCtl = React.createClass({
           <ListTags list_tag={this.state.meta_tag} onClick={this.onMetaTagClick} />
         </div>
         <div className="clickedTag">
-          <ListKeys list_tag={this.state.clicked_tag} onClick={this.onKeyClick} />
+          <ListKeys list_tag={this.state.clicked_tag} onClick={this.onKeyClick} get_url={this.props.get_url} />
         </div>
         <div className="uploadBox">
-          <UploadCtl upload_url={this.props.upload_url} onClick={this.onKeyClick} onUploadSuccess={this.onUploadSuccess} />
+          <UploadCtl upload_url={this.props.upload_url}  get_url={this.props.get_url}
+            onClick={this.onKeyClick}
+            onUploadSuccess={this.onUploadSuccess}
+          />
+          <hr/>
+          <PlaylistCtl manifest_url={this.props.manifest_url} onPlay={this.onPlay}/>
         </div>
         <div className="contentBox">
-          <ContentCtl obj={this.state.content} get_url={this.props.get_url} ctype={this.state.ctype} />
+          <ContentCtl obj={this.state.content} get_url={this.props.get_url} />
         </div>
       </div>
     );
