@@ -74,7 +74,6 @@ var ContentCtl = React.createClass({
       if (this.props.obj != prevProps.obj) {
         var tmp = document.getElementById('test_video');
         var player = dashjs.MediaPlayer().create();
-        console.log("Resetting player, test_video: %o", tmp);
         player.initialize(tmp, this.props.obj.playlist.playlist_url, true);
       }
     }
@@ -97,7 +96,10 @@ var ContentCtl = React.createClass({
       );
     } else if (startsWith(obj.ctype, "playlist/")) {
       return (
-        <video id="test_video" controls="true" />
+        <div>
+          <p><video id="test_video" controls="true" /></p>
+          <p>You can use following playlist url in your own player: <a href={obj.playlist.playlist_url}>{obj.playlist.playlist_url}</a></p>
+        </div>
       );
     } else if (obj.name && obj.bucket) {
       var url = this.props.get_url + "/" + obj.bucket + "/" + obj.name;
