@@ -68,17 +68,6 @@ var MediaInfo = React.createClass({
 });
 
 var ContentCtl = React.createClass({
-  componentDidUpdate: function(prevProps, prevState) {
-    if (this.props.obj && this.props.obj.playlist) {
-      // only update content object if it differs, this allows to play video while changing list of files
-      if (this.props.obj != prevProps.obj) {
-        var tmp = document.getElementById('test_video');
-        var player = dashjs.MediaPlayer().create();
-        player.initialize(tmp, this.props.obj.playlist.playlist_url, true);
-      }
-    }
-  },
-
   render: function() {
     var obj = this.props.obj;
 
@@ -95,10 +84,14 @@ var ContentCtl = React.createClass({
           <MediaInfo meta_json_url={this.props.meta_json_url} obj={this.props.obj} />
       );
     } else if (startsWith(obj.ctype, "playlist/")) {
+      var text;
+      if (obj.ctype == "playlist/dash") {
+        text = <span>You can use following playlist <a href={obj.playlist.playlist_url}>url</a> in your own DASH player, but there is an option to disable this which we currently do not turn on.</span>;
+      }
       return (
         <div>
-          <p><video id="test_video" controls="true" /></p>
-          <p>You can use following playlist url in your own player: <a href={obj.playlist.playlist_url}>{obj.playlist.playlist_url}</a></p>
+          <p><Video obj={obj} /></p>
+          <p>{text}</p>
         </div>
       );
     } else if (obj.name && obj.bucket) {
