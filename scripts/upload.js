@@ -79,7 +79,8 @@ var UploadStatus = React.createClass({
 
     return (
       <div className="uploadCompletionList">
-        <p>{ upload_completions.length >= 1 ? "You have uploaded following files in the last uploading session" : "You have not uploaded any files yet" }</p>
+        <p>{ upload_completions.length >= 1 ? "You have uploaded following files in the last uploading session" : "You have not uploaded any files in the current session yet" }</p>
+        <p>Please note that transcoding audio/video files may take a while, files will be automatically placed into appropriate tags, after this process completes.</p>
         {upload_completions}
         <p>{ upload_errors.length >= 1 ? "Following files have not been uploaded because of errors" : null }</p>
         {upload_errors}
