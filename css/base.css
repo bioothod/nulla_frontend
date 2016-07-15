@@ -26,6 +26,15 @@ code {
   padding: 0 5px;
 }
 
+.welcome_content p {
+  padding-bottom: 0em;
+  margin-bottom: 0em;
+  margin-top: 0em;
+}
+.welcome_content {
+  padding-bottom: 1em;
+}
+
 .signupBox {
   display: block;
   padding: 1em;

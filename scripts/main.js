@@ -25,7 +25,7 @@ var MainCtl = React.createClass({
       logged: false,
       mbox: {},
       meta_tag: 'tags',
-      auth_message: 'You are looking at translation creation site, please login or sign up.',
+      auth_message: '',
     };
   },
 
@@ -71,7 +71,7 @@ var MainCtl = React.createClass({
         </div>
     } else {
       component =
-        <div>
+        <div className="welcome">
           <AuthBox
             user_login={this.props.user_login}
             user_signup={this.props.user_signup}
@@ -79,7 +79,14 @@ var MainCtl = React.createClass({
             onError={this.onError}
           />
 
+          <div className="welcome_content">
+            <p>You are looking at proof-of-concept service which allows to generate adaptive MPEG-DASH/HLS stream by muxing multiple streams in realtime without content reencoding.</p>
+            <p>Example below (MPEG-DASH is supported in Chrome and recent IE and Firefox) plays 5-seconds video chunks from 2 video tracks and 30-seconds audio chunks from 2 audio files.</p>
+            <p>This service allows to generate such playlists in realtime without content reencoding.</p>
+            <p>If you are interested, please login or sign up.</p>
+          </div>
           <Empty message={this.state.auth_message} />
+          <MainPlaylist manifest_url={this.props.manifest_url} />
         </div>
     }
 
