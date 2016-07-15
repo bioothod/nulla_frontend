@@ -72,15 +72,21 @@ var PlaylistCtl = React.createClass({
     if (obj.track.audio.sample_rate !== 0) {
       var ntracks = this.state.audio.tracks.filter(filter_function);
       var d = Math.round(this.state.audio.duration_sec - remove_duration);
+      if (ntracks.length === 0) {
+        d = 0;
+      }
       this.setState({audio: {tracks: ntracks, duration_sec: d}});
     } else {
       var ntracks = this.state.video.tracks.filter(filter_function);
       var d = Math.round(this.state.video.duration_sec - remove_duration);
+      if (ntracks.length === 0) {
+        d = 0;
+      }
       this.setState({video: {tracks: ntracks, duration_sec: d}});
     }
   },
 
-  generatePlaylist: function(event) {
+  generatePlaylist: function(type) {
     var pl = {};
     pl.timeout_sec = 10000000;
     pl.chunk_duration_sec = 10;
@@ -104,7 +110,7 @@ var PlaylistCtl = React.createClass({
 
     pl.audio = audio;
     pl.video = video;
-    pl.playlist = "dash";
+    pl.type = type;
 
     var url = this.props.manifest_url;
     $.ajax({
@@ -115,7 +121,7 @@ var PlaylistCtl = React.createClass({
       dataType: 'json',
       success: function(reply) {
         var obj = {};
-        obj.ctype = "playlist/" + pl.playlist;
+        obj.ctype = "playlist/" + pl.type;
         obj.playlist = reply;
         this.props.onPlay(obj);
       }.bind(this),
@@ -140,7 +146,7 @@ var PlaylistCtl = React.createClass({
     return(
       <div className="playlistCtl" onDrop={this.onDrop} onDragOver={this.onDragOver}>
         <p>Drag and drop tracks from content column (click on audio/video files) here to create playlist</p>
-        <p><a href="#" onClick={this.generatePlaylist}>Generate playlist</a></p>
+        <p><a href="#" onClick={this.generatePlaylist.bind(this, "dash")}>DASH playlist</a></p>
         <div className="playlistCtlMedia">
           <p>Audio duration: {this.state.audio.duration_sec}</p>
           {audio_tracks}
