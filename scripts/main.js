@@ -83,6 +83,7 @@ var MainCtl = React.createClass({
             <p>You are looking at proof-of-concept service which allows to generate adaptive MPEG-DASH/HLS stream by muxing multiple streams in realtime without content reencoding.</p>
             <p>Example below (MPEG-DASH is supported in Chrome and recent IE and Firefox) plays 5-seconds video chunks from 2 video tracks and 30-seconds audio chunks from 2 audio files.</p>
             <p>This service allows to generate such playlists in realtime without content reencoding.</p>
+            <p>More info is available in our blog <a href="http://www.ioremap.net/2016/07/14/adaptive-mpeg-dash-streaming-and-arbitrary-channel-muxing/" target="_blank">post</a>.</p>
             <p>If you are interested, please login or sign up.</p>
           </div>
           <Empty message={this.state.auth_message} />
