@@ -29,6 +29,10 @@ var ListTags = React.createClass({
       );
     }, this);
 
+    if (listTags.length === 0) {
+      listTags = <p>Here will be an automatically generated list of tags assigned to files you upload</p>
+    }
+
     return (
       <div>
         {listTags}
@@ -49,7 +53,7 @@ var ListKeys = React.createClass({
 
     return (
       <div>
-        { this.props.list_tag.name.name ? "Listing files for tag " + this.props.list_tag.name.name : null }
+        { this.props.list_tag.name.name ? "Listing files for tag " + this.props.list_tag.name.name : <p>Here will be a list files for any tag you select</p> }
         {listKeys}
       </div>
     );
